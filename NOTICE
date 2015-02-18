@@ -1,0 +1,19 @@
+Primary source file is from the Apache HTTP Server
+Copyright 2015 The Apache Software Foundation.
+That code is licensed to the Apache Software Foundation (ASF)
+under one or more contributor license agreements.
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+As I'm not sure of the provenance of that code, it is possible
+portions of this software were developed at the National Center
+for Supercomputing Applications (NCSA) at the University of
+Illinois at Urbana-Champaign.
+
+Tagged portions of this code were lifted from a version of mod_rpaf.
+These are specifically from the version maintained by Geoffrey McRae.
+Project maintained at https://github.com/gnif/mod_rpaf and authored by:
+- Thomas Eibner thomas@stderr.net
+- Geoffrey McRae gnif@xbmc.org
+- Proxigence Inc. support@proxigence.com
