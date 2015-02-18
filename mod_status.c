@@ -1,7 +1,13 @@
-/* Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
+/* This software is mostly not my own work, I've attempted to provide full
+ * credit for upstream work in the NOTICE file.
+ * If I goofed some way in this regard, please contact me so I can correct it.
+ *
+ * Primary source file is from the Apache Software Foundation (ASF).
+ * Some code has been lifted from the excellent mod_rpaf, and remains
+ * Copyright 2011 Ask Bjørn Hansen
+ * Remaining atrocities are copyright 2015 to Daniel Bradshaw.
+ *
+ * This and it's source works are under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
  *
