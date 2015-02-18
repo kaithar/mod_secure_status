@@ -7,6 +7,18 @@ server wide IP whitelist access control for the module.  This prevents rogue
 use of `SetHandler server-status` in .htaccess files, particularly useful on
 shared hosting servers.
 
+## FAQ
+### 1. Why didn't you submit this upstream instead?
+Because I'm lazy and not familiar with Apache's API, thus this code is mostly
+a Frankenstein graft of code from mod_rpaf in to mod_status.
+Since I didn't write the code I've lifted from rpaf, and can't clean room an
+implementation myself in the time I have available for it, I'm not comfortable
+submitting this upstream to ASF.  Even if I were, I can't submit a CLA for the
+code from rpaf and thus wouldn't have it accepted.
+
+So, since I can't submit it upstream but both bits of code are under compatible
+licences, I'm releasing it directly.  Think of it as the next best option.
+
 ## Installation and Use
 ### Step 0: Short cut method
 If you're installing from source, or have a package manager that can compile for
