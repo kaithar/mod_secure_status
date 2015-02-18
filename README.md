@@ -7,8 +7,6 @@ server wide IP whitelist access control for the module.  This prevents rogue
 use of `SetHandler server-status` in .htaccess files, particularly useful on
 shared hosting servers.
 
-[TOC]
-
 ## Installation and Use
 ### Step 0: Short cut method
 If you're installing from source, or have a package manager that can compile for
