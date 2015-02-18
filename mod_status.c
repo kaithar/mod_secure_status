@@ -341,6 +341,7 @@ static int status_handler(request_rec *r)
     int j, i, res;
     int ready;
     int busy;
+    int graced; // Line added by Kaithar
     unsigned long count;
     unsigned long lres, my_lres, conn_lres;
     apr_off_t bytes, my_bytes, conn_bytes;
@@ -384,6 +385,7 @@ static int status_handler(request_rec *r)
 
     ready = 0;
     busy = 0;
+    graced = 0; // Line added by Kaithar
     count = 0;
     bcount = 0;
     kbcount = 0;
@@ -466,7 +468,12 @@ static int status_handler(request_rec *r)
                 else if (res != SERVER_DEAD &&
                          res != SERVER_STARTING &&
                          res != SERVER_IDLE_KILL)
+                {
+                    /* Kaithar modified this code block to count gracefuls. */
+                    if (res == SERVER_GRACEFUL) 
+                        graced++;
                     busy++;
+                }
             }
 
             /* XXX what about the counters for quiescing/seg faulted
@@ -612,11 +619,15 @@ static int status_handler(request_rec *r)
         } /* short_report */
     } /* ap_extended_status */
 
+    /* Graceful info added to these two prints. - Kaithar */
     if (!short_report)
         ap_rprintf(r, "<dt>%d requests currently being processed, "
-                      "%d idle workers</dt>\n", busy, ready);
+                      "%d idle workers</dt>\n"
+                      "<dt>%d workers pending Graceful restart</dt>\n",
+                      busy, ready, graced);
     else
-        ap_rprintf(r, "BusyWorkers: %d\nIdleWorkers: %d\n", busy, ready);
+        ap_rprintf(r, "BusyWorkers: %d\nIdleWorkers: %d\nGracefulWorkers: %d\n",
+                      busy, ready, graced);
 
     /* send the scoreboard 'table' out */
     if (!short_report)

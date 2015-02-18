@@ -153,6 +153,12 @@ error:
 > apache2: Syntax error on line 129 of /etc/apache2/httpd.conf: Can't locate API module structure `secure_status_module' in file /usr/lib64/apache2/modules/mod_secure_status.so: /usr/lib64/apache2/modules/mod_secure_status.so: undefined symbol: secure_status_module
 Again, this is an intentional safety feature to force the behaviour just noted.
 
+## Bonus feature!
+
+This code also adds, to both full and machine readable modes, a count of the
+number of processes awaiting graceful restart.  This might come in handy if you
+want to monitor for when they've all restarted.
+
 ## Credits
 
 The original mod_status code is directly from Apache.
