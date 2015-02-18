@@ -1,4 +1,5 @@
-/* This software is mostly not my own work, I've attempted to provide full
+/* This is a modified version mod_status.
+ * This code is mostly not my own work, I've attempted to provide full
  * credit for upstream work in the NOTICE file.
  * If I goofed some way in this regard, please contact me so I can correct it.
  *
@@ -6,6 +7,9 @@
  * Some code has been lifted from the excellent mod_rpaf, and remains
  * Copyright 2011 Ask Bjørn Hansen
  * Remaining atrocities are copyright 2015 to Daniel Bradshaw.
+ *
+ * Canonical source for this patch, including the LICENSE and NOTICE file, is
+ * available at https://github.com/kaithar/mod_secure_status
  *
  * This and it's source works are under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with

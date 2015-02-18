@@ -1,11 +1,12 @@
---- mod_status.c.orig	2015-02-18 18:47:41.189396429 +0000
-+++ mod_status.c	2015-02-18 19:06:09.341466585 +0000
-@@ -1,7 +1,13 @@
+--- modules/generators/mod_status.c.orig	2015-02-18 18:47:41.189396429 +0000
++++ modules/generators/mod_status.c	2015-02-18 20:54:12.664877035 +0000
+@@ -1,7 +1,17 @@
 -/* Licensed to the Apache Software Foundation (ASF) under one or more
 - * contributor license agreements.  See the NOTICE file distributed with
 - * this work for additional information regarding copyright ownership.
 - * The ASF licenses this file to You under the Apache License, Version 2.0
-+/* This software is mostly not my own work, I've attempted to provide full
++/* This is a modified version mod_status.
++ * This code is mostly not my own work, I've attempted to provide full
 + * credit for upstream work in the NOTICE file.
 + * If I goofed some way in this regard, please contact me so I can correct it.
 + *
@@ -14,11 +15,14 @@
 + * Copyright 2011 Ask Bjørn Hansen
 + * Remaining atrocities are copyright 2015 to Daniel Bradshaw.
 + *
++ * Canonical source for this patch, including the LICENSE and NOTICE file, is
++ * available at https://github.com/kaithar/mod_secure_status
++ *
 + * This and it's source works are under the Apache License, Version 2.0
   * (the "License"); you may not use this file except in compliance with
   * the License.  You may obtain a copy of the License at
   *
-@@ -55,6 +61,20 @@
+@@ -55,6 +65,20 @@
   */
  
  #define CORE_PRIVATE
@@ -39,7 +43,7 @@
  #include "httpd.h"
  #include "http_config.h"
  #include "http_core.h"
-@@ -115,6 +135,43 @@ APR_IMPLEMENT_OPTIONAL_HOOK_RUN_ALL(ap,
+@@ -115,6 +139,43 @@ APR_IMPLEMENT_OPTIONAL_HOOK_RUN_ALL(ap,
  static pid_t child_pid;
  #endif
  
@@ -83,7 +87,7 @@
  /*
   * command-related code. This is here to prevent use of ExtendedStatus
   * without status_module included.
-@@ -139,6 +196,38 @@ static const char *set_reqtail(cmd_parms
+@@ -139,6 +200,38 @@ static const char *set_reqtail(cmd_parms
      return NULL;
  }
  
@@ -122,7 +126,7 @@
  
  static const command_rec status_module_cmds[] =
  {
-@@ -147,9 +236,31 @@ static const command_rec status_module_c
+@@ -147,9 +240,31 @@ static const command_rec status_module_c
      AP_INIT_FLAG("SeeRequestTail", set_reqtail, NULL, RSRC_CONF,
        "For verbose requests, \"On\" to see the last 63 chars of the request, "
        "\"Off\" (default) to see the first 63 in extended status display"),
@@ -154,7 +158,7 @@
  /* Format the number of bytes nicely */
  static void format_byte_out(request_rec *r, apr_off_t bytes)
  {
-@@ -230,6 +341,7 @@ static int status_handler(request_rec *r
+@@ -230,6 +345,7 @@ static int status_handler(request_rec *r
      int j, i, res;
      int ready;
      int busy;
@@ -162,7 +166,7 @@
      unsigned long count;
      unsigned long lres, my_lres, conn_lres;
      apr_off_t bytes, my_bytes, conn_bytes;
-@@ -253,6 +365,16 @@ static int status_handler(request_rec *r
+@@ -253,6 +369,16 @@ static int status_handler(request_rec *r
          return DECLINED;
      }
  
@@ -179,7 +183,7 @@
  #ifdef HAVE_TIMES
  #ifdef _SC_CLK_TCK
      tick = sysconf(_SC_CLK_TCK);
-@@ -263,6 +385,7 @@ static int status_handler(request_rec *r
+@@ -263,6 +389,7 @@ static int status_handler(request_rec *r
  
      ready = 0;
      busy = 0;
@@ -187,7 +191,7 @@
      count = 0;
      bcount = 0;
      kbcount = 0;
-@@ -345,7 +468,12 @@ static int status_handler(request_rec *r
+@@ -345,7 +472,12 @@ static int status_handler(request_rec *r
                  else if (res != SERVER_DEAD &&
                           res != SERVER_STARTING &&
                           res != SERVER_IDLE_KILL)
@@ -200,7 +204,7 @@
              }
  
              /* XXX what about the counters for quiescing/seg faulted
-@@ -491,11 +619,15 @@ static int status_handler(request_rec *r
+@@ -491,11 +623,15 @@ static int status_handler(request_rec *r
          } /* short_report */
      } /* ap_extended_status */
  
@@ -218,7 +222,7 @@
  
      /* send the scoreboard 'table' out */
      if (!short_report)
-@@ -874,7 +1006,7 @@ module AP_MODULE_DECLARE_DATA status_mod
+@@ -874,7 +1010,7 @@ module AP_MODULE_DECLARE_DATA status_mod
      STANDARD20_MODULE_STUFF,
      NULL,                       /* dir config creater */
      NULL,                       /* dir merger --- default is to override */
