@@ -61,6 +61,20 @@
  */
 
 #define CORE_PRIVATE
+
+/* Begin section lifted from mod_rpaf */
+#include "ap_release.h"
+#if AP_SERVER_MAJORVERSION_NUMBER >= 2 && AP_SERVER_MINORVERSION_NUMBER >= 4
+  #define DEF_IP   useragent_ip
+  #define DEF_ADDR useragent_addr
+  #define DEF_POOL pool
+#else
+  #define DEF_IP   connection->remote_ip
+  #define DEF_ADDR connection->remote_addr
+  #define DEF_POOL connection->pool
+#endif
+/* End section lifted from mod_rpaf */
+
 #include "httpd.h"
 #include "http_config.h"
 #include "http_core.h"
@@ -121,6 +135,43 @@ APR_IMPLEMENT_OPTIONAL_HOOK_RUN_ALL(ap, STATUS, int, status_hook,
 static pid_t child_pid;
 #endif
 
+/* Function lifted from mod_rpaf */
+static void *create_server_cfg(apr_pool_t *p, server_rec *s) {
+    /* This function was trimmed down due to not needing the full settings struct */
+    apr_array_header_t *permitted_ips = apr_array_make(p, 10, sizeof(apr_ipsubnet_t *));
+    if (!permitted_ips)
+        return NULL;
+
+    return (void *)permitted_ips;
+}
+
+/* Function lifted from mod_rpaf without change */
+/* quick check for ipv4/6 likelihood; similar to Apache2.4 mod_remoteip check */
+static int rpaf_looks_like_ip(const char *ip) {
+    static const char ipv4_set[] = "0123456789./";
+    static const char ipv6_set[] = "0123456789abcdef:/";
+
+    /* zero length value is not valid */
+    if (!*ip)
+      return 0;
+
+    const char *ptr    = ip;
+
+    /* determine if this could be a IPv6 or IPv4 address */
+    if (strchr(ip, ':'))
+    {
+        while(*ptr && strchr(ipv6_set, *ptr) != NULL)
+            ++ptr;
+    }
+    else
+    {
+        while(*ptr && strchr(ipv4_set, *ptr) != NULL)
+            ++ptr;
+    }
+
+    return (*ptr == '\0');
+}
+
 /*
  * command-related code. This is here to prevent use of ExtendedStatus
  * without status_module included.
@@ -145,6 +196,38 @@ static const char *set_reqtail(cmd_parms *cmd, void *dummy, int arg)
     return NULL;
 }
 
+/* Function lifted from mod_rpaf, some names changed for consistency */
+static const char *SecStatus_set_permit_ip(cmd_parms *cmd, void *dummy, const char *permit_ip) {
+    char *ip, *mask;
+    apr_ipsubnet_t **sub;
+    apr_status_t rv;
+    server_rec *s = cmd->server;
+    apr_array_header_t *permitted_ips = (apr_array_header_t *)ap_get_module_config(s->module_config,
+                                                                   &status_module);
+
+    if (rpaf_looks_like_ip(permit_ip)) {
+        ip = apr_pstrdup(cmd->temp_pool, permit_ip);
+        if (mask = ap_strchr(ip, '/')) {
+            *mask++ = '\0';
+        }
+        sub = (apr_ipsubnet_t **)apr_array_push(permitted_ips);
+        rv = apr_ipsubnet_create(sub, ip, mask, cmd->pool);
+
+        if (rv != APR_SUCCESS) {
+            char msgbuf[128];
+            apr_strerror(rv, msgbuf, sizeof(msgbuf));
+            return apr_pstrcat(cmd->pool, "mod_status: Error parsing IP ", permit_ip, " in ",
+                               cmd->cmd->name, ". ", msgbuf, NULL);
+        }
+    }
+    else
+    {
+      return apr_pstrcat(cmd->pool, "mod_status: Error parsing IP \"", permit_ip, "\" in ",
+                         cmd->cmd->name, ". Failed basic parsing.", NULL);     
+    }
+
+    return NULL;
+}
 
 static const command_rec status_module_cmds[] =
 {
@@ -153,8 +236,30 @@ static const command_rec status_module_cmds[] =
     AP_INIT_FLAG("SeeRequestTail", set_reqtail, NULL, RSRC_CONF,
       "For verbose requests, \"On\" to see the last 63 chars of the request, "
       "\"Off\" (default) to see the first 63 in extended status display"),
+    /* This call lifted from mod_rpaf */
+    AP_INIT_ITERATE(
+                 "SecStatus_PermitIPs",
+                 SecStatus_set_permit_ip,
+                 NULL,
+                 RSRC_CONF,
+                 "IP(s) permitted to request status"
+                 ),
     {NULL}
 };
+
+/* Function lifted from mod_rpaf */
+static int is_in_array(apr_sockaddr_t *remote_addr, apr_array_header_t *permitted_ips) {
+    int i;
+    apr_ipsubnet_t **subs = (apr_ipsubnet_t **)permitted_ips->elts;
+
+    for (i = 0; i < permitted_ips->nelts; i++) {
+        if (apr_ipsubnet_test(subs[i], remote_addr)) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
 
 /* Format the number of bytes nicely */
 static void format_byte_out(request_rec *r, apr_off_t bytes)
@@ -258,6 +363,16 @@ static int status_handler(request_rec *r)
         strcmp(r->handler, "server-status")) {
         return DECLINED;
     }
+
+
+    /* Begin modified from code mod_rpaf */
+    apr_array_header_t *permitted_ips = (apr_array_header_t *)ap_get_module_config(r->server->module_config,
+                                                                   &status_module);
+    /* check if the remote_addr is in the allowed remote IP list */
+    if (is_in_array(r->DEF_ADDR, permitted_ips) != 1) {
+        return HTTP_FORBIDDEN;
+    }
+    /* End mod_rpaf section */
 
 #ifdef HAVE_TIMES
 #ifdef _SC_CLK_TCK
@@ -880,7 +995,7 @@ module AP_MODULE_DECLARE_DATA status_module =
     STANDARD20_MODULE_STUFF,
     NULL,                       /* dir config creater */
     NULL,                       /* dir merger --- default is to override */
-    NULL,                       /* server config */
+    create_server_cfg,          /* server config */
     NULL,                       /* merge server config */
     status_module_cmds,         /* command table */
     register_hooks              /* register_hooks */
