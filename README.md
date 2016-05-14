@@ -143,6 +143,7 @@ fail-safe decision.
 If `SecStatus_PermitIPs` is set and the config manages to load vanilla
 `mod_status` instead of this version, Apache will throw a syntax error:
 > Invalid command 'SecStatus_PermitIPs', perhaps misspelled or defined by a module not included in the server configuration
+
 This can act as a fail safe, preventing the unsecured version from loading.
 
 The module name is provided as `status_module`, the same as the vanilla module,
@@ -153,6 +154,7 @@ LoadModule status_module modules/mod_secure_status.so
 ```
 Causes:
 > [warn] module status_module is already loaded, skipping.
+
 If the wrong version is loaded, the previously mentioned behaviours kick in.
 If the correct version is loaded, the server will start and behave as expected.
 This is intended to protect against the situation of having both available, as
@@ -161,6 +163,7 @@ might be possible if both modules were loaded.
 Attempting to load the module with a different name will result in the following
 error:
 > apache2: Syntax error on line 129 of /etc/apache2/httpd.conf: Can't locate API module structure `secure_status_module' in file /usr/lib64/apache2/modules/mod_secure_status.so: /usr/lib64/apache2/modules/mod_secure_status.so: undefined symbol: secure_status_module
+
 Again, this is an intentional safety feature to force the behaviour just noted.
 
 ## Bonus feature!
